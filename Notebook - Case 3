@@ -1,0 +1,106 @@
+# === Case 3: Artefatos de Tracking Temporal ===
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+# 1) Paths de saída (DBFS ou local do cluster)
+OUT_DIR = "/dbfs/mnt/perfis/case3_artifacts"
+os.makedirs(OUT_DIR, exist_ok=True)
+
+# 2) Garantias mínimas
+assert isinstance(df_all, pd.DataFrame) and not df_all.empty, "df_all está vazio."
+assert {"idcliente","perfil_estimado","janela_inicio","janela_fim"}.issubset(df_all.columns), "Colunas faltando em df_all."
+
+# 3) Ordena por cliente e tempo
+df_all2 = df_all.copy()
+df_all2["janela_inicio"] = pd.to_datetime(df_all2["janela_inicio"])
+df_all2["janela_fim"]    = pd.to_datetime(df_all2["janela_fim"])
+df_all2 = df_all2.sort_values(["idcliente","janela_inicio"])
+
+# 4) Matriz de transição global (origem -> destino, em janelas consecutivas)
+def transition_matrix(df_seq: pd.DataFrame, col_id="idcliente", col_time="janela_inicio", col_label="perfil_estimado"):
+    rows = []
+    for cid, group in df_seq.groupby(col_id):
+        g = group[[col_time, col_label]].sort_values(col_time)
+        prev = None
+        for _, r in g.iterrows():
+            cur = r[col_label]
+            if prev is not None:
+                rows.append((prev, cur))
+            prev = cur
+    if not rows:
+        return pd.DataFrame()
+    trans = pd.DataFrame(rows, columns=["origem","destino"])
+    mat = pd.crosstab(trans["origem"], trans["destino"], normalize="index")  # prob. de destino dado origem
+    return trans, mat
+
+trans_pairs, trans_mat = transition_matrix(df_all2)
+trans_mat.to_csv(f"{OUT_DIR}/matriz_transicao.csv", index=True)
+
+# 5) Estabilidade por perfil dominante (distribuição)
+# se você já tem df_stability, usamos; senão, criamos um rápido agregado:
+if 'df_stability' not in globals() or df_stability is None or df_stability.empty:
+    stab_rows = []
+    for cid, group in df_all2.groupby("idcliente"):
+        perfis = group["perfil_estimado"].tolist()
+        dom = max(set(perfis), key=perfis.count)
+        estabilidade = perfis.count(dom)/len(perfis)
+        stab_rows.append({"idcliente": cid, "perfil_dominante": dom, "estabilidade_percentual": round(estabilidade*100,2)})
+    df_stability = pd.DataFrame(stab_rows)
+
+stab_by_profile = df_stability.groupby("perfil_dominante")["estabilidade_percentual"].agg(["count","mean","std"]).reset_index()
+stab_by_profile.to_csv(f"{OUT_DIR}/estabilidade_por_perfil.csv", index=False)
+
+# 6) Entropia média por janela (incerteza)
+prob_cols = [c for c in df_all2.columns if c.startswith("prob_")]
+if prob_cols:
+    def row_entropy(row):
+        p = row[prob_cols].values.astype(float) + 1e-9
+        p = p / p.sum()
+        return -(p*np.log(p)).sum()
+    ent = df_all2.groupby("janela_inicio").apply(lambda g: row_entropy(g[prob_cols].mean())).reset_index(name="entropia_media")
+    ent.to_csv(f"{OUT_DIR}/entropia_por_janela.csv", index=False)
+else:
+    ent = pd.DataFrame(columns=["janela_inicio","entropia_media"])
+
+# 7) Gráficos (simples, prontos para anexar no LinkedIn)
+# 7.1 Heatmap da Matriz de Transição (salvamos como imagem estática)
+if not trans_mat.empty:
+    plt.figure()
+    plt.imshow(trans_mat.values, aspect="auto")
+    plt.xticks(ticks=range(trans_mat.shape[1]), labels=list(trans_mat.columns), rotation=45, ha="right")
+    plt.yticks(ticks=range(trans_mat.shape[0]), labels=list(trans_mat.index))
+    plt.title("Matriz de Transição de Perfis (Origem → Destino)")
+    plt.colorbar()
+    plt.tight_layout()
+    plt.savefig(f"{OUT_DIR}/matriz_transicao.png", dpi=160)
+    plt.close()
+
+# 7.2 Boxplot de Estabilidade por Perfil Dominante
+plt.figure()
+data = [df_stability.loc[df_stability["perfil_dominante"]==p, "estabilidade_percentual"].values
+        for p in sorted(df_stability["perfil_dominante"].unique())]
+plt.boxplot(data, labels=sorted(df_stability["perfil_dominante"].unique()))
+plt.title("Estabilidade (%) por Perfil Dominante")
+plt.ylabel("Estabilidade (%)")
+plt.tight_layout()
+plt.savefig(f"{OUT_DIR}/estabilidade_por_perfil.png", dpi=160)
+plt.close()
+
+# 7.3 Linha da Entropia por Janela
+if not ent.empty:
+    plt.figure()
+    plt.plot(ent["janela_inicio"], ent["entropia_media"])
+    plt.title("Entropia Média por Janela")
+    plt.xlabel("Janela (início)")
+    plt.ylabel("Entropia")
+    plt.tight_layout()
+    plt.savefig(f"{OUT_DIR}/entropia_por_janela.png", dpi=160)
+    plt.close()
+
+print("[Case 3] Artefatos salvos em:", OUT_DIR)
+
+
+
