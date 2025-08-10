@@ -1,0 +1,45 @@
+Com os outputs finais do Case 3 — Tracking Temporal de Perfis, conseguimos abrir um leque de cenários que vão muito além da análise descritiva, permitindo inclusive diagnósticos, predições, recomendações prescritivas e inferências causais.
+
+1. Cenários Descritivos (estado atual)
+
+Baseados nos heatmaps, matrizes de transição e métricas de estabilidade:
+
+* Quais perfis são mais estáveis (clientes fiéis a um padrão).
+* Quais perfis têm maior volatilidade (mudam mais de comportamento).
+* Padrões de migração dominante (ex.: clientes do Perfil “Explorador” migram com frequência para “Premium”).
+
+2. Cenários Diagnósticos (por que está acontecendo)
+
+Correlacionando estabilidade/transições com variáveis de negócio:
+
+* Queda de estabilidade ligada a ações comerciais específicas (ex.: mudança de preços, campanhas).
+* Transições associadas a sazonalidade ou ciclos econômicos.
+* Identificação de gatilhos internos (mudança de mix de produtos, novas lojas, promoções) e externos (feriados, inflação).
+
+3. Cenários Preditivos (o que vai acontecer)
+
+Aplicando modelos de séries temporais ou modelos de transição de estados:
+
+* Probabilidade de um cliente migrar de perfil no próximo mês.
+* Projeção de mudança na distribuição de perfis ao longo dos próximos trimestres.
+* Identificação antecipada de clientes com alto risco de churn ou alta propensão a upgrade.
+
+4. Cenários Prescritivos (o que devemos fazer)
+
+Combinando probabilidades de transição com restrições e objetivos de negócio:
+
+* Definir campanhas direcionadas para perfis com alta chance de migração para segmentos mais rentáveis.
+* Ajustar políticas de preço e portfólio para aumentar estabilidade dos perfis de maior LTV.
+* Recomendar ações de retenção personalizadas com base no histórico de transições individuais.
+
+5. Cenários de Inferência Causal (o que causou a mudança)
+
+Com modelos como Difference-in-Differences ou Causal Impact:
+
+* Determinar se uma mudança de política comercial gerou aumento de estabilidade.
+* Medir o impacto real de campanhas promocionais sobre a migração entre perfis.
+* Separar efeito de tendência natural versus efeito de intervenção.
+
+Resumo executivo:
+
+> Esses outputs permitem que o negócio não apenas entenda o passado e o presente dos clientes, mas projete cenários futuros e recomende ações concretas para maximizar retenção, valor de vida útil (LTV) e conversão para perfis mais lucrativos.
