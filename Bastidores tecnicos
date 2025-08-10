@@ -1,0 +1,9 @@
+Bastidores técnicos:
+
+track_profiles_over_time roda janelas mensais, gera features via Spark e atribui perfis por Mahalanobis + softmax.
+
+A estabilidade é a fração de janelas em que o cliente permaneceu no seu perfil dominante.
+
+A matriz de transição global resume a dinâmica mensal da base.
+
+A entropia captura incerteza/“mistura” de perfis; picos sinalizam volatilidade e possíveis mudanças de comportamento.
