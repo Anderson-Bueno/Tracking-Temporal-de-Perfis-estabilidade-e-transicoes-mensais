@@ -1,0 +1,25 @@
+# Meios aplicados para chegar à solução
+
+A publicação mostra que o problema é atacado com uma abordagem analítica e computacional em Spark + Python, usando:
+
+a) Preparação dos dados
+Uso de um feature store em Spark para manter histórico mensal de cada cliente.
+
+Perfis estimados via matching probabilístico com distância de Mahalanobis (robusta a covariâncias degeneradas).
+
+b) Tracking temporal
+Loop de janelas mensais (track_profiles_over_time) para registrar o perfil em cada ponto no tempo.
+
+Geração de sequência temporal de perfis por cliente.
+
+c) Métricas de avaliação
+Estabilidade: % de meses em que o cliente manteve o mesmo perfil dominante.
+
+Matriz de transição: probabilidades de migração Origem → Destino entre perfis.
+
+Entropia: grau de incerteza/volatilidade nas probabilidades dos perfis atribuídos.
+
+d) Output final
+Artefatos visuais (heatmaps, boxplots, séries temporais) e CSVs exportados automaticamente para análise e apresentação.
+
+Insights que permitem priorizar clientes em risco de churn ou com potencial de upgrade.
